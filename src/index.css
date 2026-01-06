@@ -63,7 +63,7 @@ body{
   grid-template-columns: auto auto auto auto auto;
   justify-content: center;
   margin: 50px ;
-  margin-top: 150px;
+  margin-top: 100px;
   gap: 50px;
 }
 
@@ -163,4 +163,16 @@ body{
   padding: 5px;
   size: 8px;
  
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  margin: 20px;
+  gap: 10px;
+}
+
+.pagination button {
+  padding: 6px 12px;
+  cursor: pointer;
 }

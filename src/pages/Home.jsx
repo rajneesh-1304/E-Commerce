@@ -3,10 +3,14 @@ import axios from 'axios';
 import Card from '../components/Card.jsx';
 
 const Home = ({ searchValue, cartItems, setCartItems }) => {
-  const [products, setProducts] = useState(()=>{
-    const savedProducts= localStorage.getItem('products');
-    return  savedProducts? JSON.parse(savedProducts) : [];
+  const [products, setProducts] = useState(() => {
+    const savedProducts = localStorage.getItem('products');
+    return savedProducts ? JSON.parse(savedProducts) : [];
   });
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 10;
+
 
   const fetchProducts = async (query) => {
     try {
@@ -18,41 +22,67 @@ const Home = ({ searchValue, cartItems, setCartItems }) => {
       }
       setProducts(response.data.products);
 
-      localStorage.setItem('products',
+      localStorage.setItem(
+        'products',
         JSON.stringify(response.data.products)
-      )
+      );
     } catch (error) {
       console.error('Error fetching products:', error);
     }
   };
 
-  useEffect(() => { 
+  useEffect(() => {
     if (products.length === 0) {
       fetchProducts();
     }
   }, []);
 
   useEffect(() => {
-    const debounceTimer= setTimeout(()=>{
+    const debounceTimer = setTimeout(() => {
+      setCurrentPage(1);
       fetchProducts(searchValue);
-    }, 3000);
-    return ()=> clearTimeout(debounceTimer);
+    }, 2000);
+    return () => clearTimeout(debounceTimer);
   }, [searchValue]);
 
+
+  const lastIndex = currentPage * itemsPerPage;
+  const firstIndex = lastIndex - itemsPerPage;
+  const currentProducts = products.slice(firstIndex, lastIndex);
+  const totalPages = Math.ceil(products.length / itemsPerPage);
+
   return (
-    <div className='home'>
-      {products.map((card) => (
-        <Card
-          key={card.id}
-          id={card.id}
-          thumbnail={card.thumbnail}
-          title={card.title}
-          price={card.price}
-          cartItems={cartItems}
-          setCartItems={setCartItems}
-        />
-      ))}
-    </div>
+    <>
+      <div className="home">
+        {currentProducts.map((card) => (
+          <Card
+            key={card.id}
+            id={card.id}
+            thumbnail={card.thumbnail}
+            title={card.title}
+            price={card.price}
+            cartItems={cartItems}
+            setCartItems={setCartItems}
+          />
+        ))}
+      </div>
+
+      <div className="pagination">
+        <button
+        disabled={currentPage===1}
+        onClick={()=> setCurrentPage(prev => prev-1)}>
+          Prev
+        </button>
+
+        <span> Page {currentPage} of {totalPages}</span>
+
+        <button
+        disabled={currentPage===totalPages}
+        onClick={()=> setCurrentPage(prev => prev+1)}>
+          Next
+        </button>
+      </div>
+    </>
   );
 };
 
