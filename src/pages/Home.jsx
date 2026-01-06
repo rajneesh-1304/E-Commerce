@@ -3,7 +3,10 @@ import axios from 'axios';
 import Card from '../components/Card.jsx';
 
 const Home = ({ searchValue, cartItems, setCartItems }) => {
-  const [products, setProducts] = useState([]);
+  const [products, setProducts] = useState(()=>{
+    const savedProducts= localStorage.getItem('products');
+    return  savedProducts? JSON.parse(savedProducts) : [];
+  });
 
   const fetchProducts = async (query) => {
     try {
@@ -14,17 +17,26 @@ const Home = ({ searchValue, cartItems, setCartItems }) => {
         response = await axios.get('https://dummyjson.com/products');
       }
       setProducts(response.data.products);
+
+      localStorage.setItem('products',
+        JSON.stringify(response.data.products)
+      )
     } catch (error) {
       console.error('Error fetching products:', error);
     }
   };
 
-  useEffect(() => {
-    fetchProducts();
+  useEffect(() => { 
+    if (products.length === 0) {
+      fetchProducts();
+    }
   }, []);
 
   useEffect(() => {
-    fetchProducts(searchValue);
+    const debounceTimer= setTimeout(()=>{
+      fetchProducts(searchValue);
+    }, 3000);
+    return ()=> clearTimeout(debounceTimer);
   }, [searchValue]);
 
   return (

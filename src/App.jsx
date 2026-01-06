@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import Home from './pages/Home'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import Product from './pages/Product'
@@ -7,7 +7,23 @@ import Cart from './pages/Cart'
 
 const App = () => {
   const [searchValue, setSearchValue] = useState('');
-  const [cartItems, setCartItems] = useState([]);
+  const [cartItems, setCartItems] = useState(() => {
+  try {
+    const savedCart = localStorage.getItem('cartItems');
+    if (!savedCart) return [];
+    return JSON.parse(savedCart);
+  } catch (error) {
+    console.error("Invalid cartItems in localStorage. Resetting...");
+    localStorage.removeItem('cartItems');
+    return [];
+  }
+});
+
+
+
+  useEffect(() => {
+  localStorage.setItem('cartItems', JSON.stringify(cartItems));
+}, [cartItems]);
 
   return (
     <BrowserRouter>
