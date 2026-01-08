@@ -3,58 +3,48 @@ import axios from 'axios';
 import Card from '../components/Card.jsx';
 
 const Home = ({ searchValue, cartItems, setCartItems }) => {
-  const [products, setProducts] = useState(() => {
-    const savedProducts = localStorage.getItem('products');
-    return savedProducts ? JSON.parse(savedProducts) : [];
-  });
-
+  const [products, setProducts] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
+  const [totalProducts, setTotalProducts] = useState(0);
   const itemsPerPage = 10;
 
-
-  const fetchProducts = async (query) => {
+  const fetchProducts = async (page = 1, query = '') => {
     try {
-      let response;
-      if (query) {
-        response = await axios.get(`https://dummyjson.com/products/search?q=${query}`);
-      } else {
-        response = await axios.get('https://dummyjson.com/products');
-      }
-      setProducts(response.data.products);
+      const skip = (page - 1) * itemsPerPage;
+      let url = query
+        ? `https://dummyjson.com/products/search?q=${query}&limit=${itemsPerPage}&skip=${skip}`
+        : `https://dummyjson.com/products?limit=${itemsPerPage}&skip=${skip}`;
 
-      localStorage.setItem(
-        'products',
-        JSON.stringify(response.data.products)
-      );
+      const response = await axios.get(url);
+      setProducts(response.data.products);
+      setTotalProducts(response.data.total);
     } catch (error) {
       console.error('Error fetching products:', error);
     }
   };
 
   useEffect(() => {
-    if (products.length === 0) {
-      fetchProducts();
-    }
+    fetchProducts(currentPage, searchValue);
   }, []);
 
   useEffect(() => {
     const debounceTimer = setTimeout(() => {
       setCurrentPage(1);
-      fetchProducts(searchValue);
+      fetchProducts(1, searchValue);
     }, 2000);
     return () => clearTimeout(debounceTimer);
   }, [searchValue]);
 
+  useEffect(() => {
+    fetchProducts(currentPage, searchValue);
+  }, [currentPage]);
 
-  const lastIndex = currentPage * itemsPerPage;
-  const firstIndex = lastIndex - itemsPerPage;
-  const currentProducts = products.slice(firstIndex, lastIndex);
-  const totalPages = Math.ceil(products.length / itemsPerPage);
+  const totalPages = Math.ceil(totalProducts / itemsPerPage);
 
   return (
     <>
       <div className="home">
-        {currentProducts.map((card) => (
+        {products.map((card) => (
           <Card
             key={card.id}
             id={card.id}
@@ -69,16 +59,18 @@ const Home = ({ searchValue, cartItems, setCartItems }) => {
 
       <div className="pagination">
         <button
-        disabled={currentPage===1}
-        onClick={()=> setCurrentPage(prev => prev-1)}>
+          disabled={currentPage === 1}
+          onClick={() => setCurrentPage((prev) => prev - 1)}
+        >
           Prev
         </button>
 
         <span> Page {currentPage} of {totalPages}</span>
 
         <button
-        disabled={currentPage===totalPages}
-        onClick={()=> setCurrentPage(prev => prev+1)}>
+          disabled={currentPage === totalPages}
+          onClick={() => setCurrentPage((prev) => prev + 1)}
+        >
           Next
         </button>
       </div>
