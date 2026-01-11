@@ -9,9 +9,12 @@ const navigate = useNavigate();
     navigate('/cart')
   }
 
+   const handleMain = ()=>{
+    navigate('/');
+   }
   return (
     <div className='navbar'>
-      <h1 className='heading'>ShopHub</h1>
+      <h1 className='heading' onClick={handleMain}>ShopHub</h1>
       <input
         className='search_bar'
         placeholder='Search...'
